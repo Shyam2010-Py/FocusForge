@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,7 +64,8 @@ private data class GroupRpcResult(
 @Serializable
 private data class GroupMembership(
     @SerialName("group_id") val groupId: String,
-    @SerialName("role") val role: String
+    @SerialName("role") val role: String,
+    @SerialName("display_name") val displayName: String = "Student"
 )
 
 @Serializable
@@ -71,6 +73,20 @@ private data class GroupRecord(
     @SerialName("id") val id: String,
     @SerialName("name") val name: String,
     @SerialName("description") val description: String? = null
+)
+
+@Serializable
+private data class GroupFocusRow(
+    @SerialName("user_id") val userId: String,
+    @SerialName("status") val status: String,
+    @SerialName("ends_at") val endsAt: String? = null
+)
+
+private data class GroupMemberDisplay(
+    val name: String,
+    val role: String,
+    val status: String,
+    val endsAt: String?
 )
 
 @Serializable
@@ -82,7 +98,8 @@ private data class GroupInviteRecord(
 private data class MyGroup(
     val group: GroupRecord,
     val role: String,
-    val inviteCode: String?
+    val inviteCode: String?,
+    val members: List<GroupMemberDisplay>
 )
 
 @Composable
@@ -121,7 +138,26 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
                                 filter { eq("group_id", membership.groupId) }
                             }.decodeList<GroupInviteRecord>().firstOrNull()?.inviteCode
                         } else null
-                        MyGroup(group, membership.role, invite)
+                        val memberRows = client.from("group_members").select {
+                            filter { eq("group_id", membership.groupId) }
+                        }.decodeList<GroupMembership>()
+                        val focusRows = client.from("group_focus_status").select {
+                            filter { eq("group_id", membership.groupId) }
+                        }.decodeList<GroupFocusRow>()
+                        val memberDisplays = memberRows.map { member ->
+                            val focus = focusRows.firstOrNull { it.userId == member.userId }
+                            val status = when {
+                                focus == null -> "Not focusing"
+                                focus.status == "focusing" && focus.endsAt != null &&
+                                    runCatching { java.time.Instant.parse(focus.endsAt).isAfter(java.time.Instant.now()) }.getOrDefault(false) -> "Focusing"
+                                focus.status == "focusing" -> "Not focusing"
+                                focus.status == "paused" -> "Paused"
+                                focus.status == "completed" -> "Completed"
+                                else -> "Not focusing"
+                            }
+                            GroupMemberDisplay(member.displayName, member.role, status, focus?.endsAt)
+                        }
+                        MyGroup(group, membership.role, invite, memberDisplays)
                     }
                 }
             } catch (e: Exception) {
@@ -252,6 +288,18 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
                                 Text(it, color = groupMuted, fontSize = 12.sp)
                             }
                             Text("Role: ${item.role}", color = groupAccent, fontSize = 11.sp)
+                            HorizontalDivider(color = Color(0xFF303746))
+                            Text("Members", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                            item.members.forEach { member ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(member.name + if (member.role == "owner") " · Owner" else "", color = Color.White, fontSize = 12.sp)
+                                    Text(member.status, color = when (member.status) {
+                                        "Focusing" -> Color(0xFF70D6A1)
+                                        "Paused" -> Color(0xFFE8B96C)
+                                        else -> groupMuted
+                                    }, fontSize = 11.sp)
+                                }
+                            }
                             item.inviteCode?.let { code ->
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text("Invite code: $code", color = Color.White, fontSize = 13.sp)
