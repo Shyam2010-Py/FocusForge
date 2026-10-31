@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -47,7 +49,8 @@ import java.util.Date
 private val bg=Color(0xFF090B10); private val panel=Color(0xFF141923); private val accent=Color(0xFF9B8CFF); private val muted=Color(0xFF929AAA)
 
 class MainActivity : ComponentActivity() {
- override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); setContent { FocusForgeApp() } }
+ override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); FocusForgeSupabase.handleDeepLink(intent, lifecycleScope); setContent { FocusForgeApp() } }
+ override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); FocusForgeSupabase.handleDeepLink(intent, lifecycleScope) }
 }
 
 @Composable fun FocusForgeApp() {
@@ -107,6 +110,7 @@ class MainActivity : ComponentActivity() {
   }
   Text("Only apps marked Block are restricted during an active focus session.",color=muted,fontSize=13.sp)
   PermissionCard()
+  AccountCard()
  }
 }
 
