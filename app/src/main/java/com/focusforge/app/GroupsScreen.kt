@@ -118,7 +118,7 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
     var message by remember { mutableStateOf<String?>(null) }
     var refresh by remember { mutableStateOf(0) }
 
-    LaunchedEffect(userId) { while (true) { kotlinx.coroutines.delay(10000); refresh = !refresh } }
+    LaunchedEffect(userId) { while (true) { kotlinx.coroutines.delay(10000); refresh = refresh + 1 } }
 
     LaunchedEffect(userId, refresh) {
         if (client == null) {
