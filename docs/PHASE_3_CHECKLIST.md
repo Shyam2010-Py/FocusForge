@@ -6,11 +6,11 @@
 - [x] Add Google OAuth launch and sign-out UI.
 - [x] Add Android deep-link callback handling (`focusforge://login`).
 - [x] Keep focus timer and Room history independent of cloud authentication.
-- [ ] Add local Supabase URL and publishable key to `local.properties`.
-- [ ] Configure Google OAuth credentials and enable the Google provider in Supabase.
-- [ ] Add `focusforge://login` to Supabase Auth URL Configuration > Redirect URLs.
-- [ ] Build and test Google sign-in, callback, session restore and sign-out on a physical device.
-- [ ] Verify Android CI.
+- [x] Ignore local.properties so local credentials are not committed.
+- [x] Run Android CI on pushes to the Phase 3 branch and upload the debug APK as a workflow artifact.
+- [ ] Add the Supabase publishable key as the GitHub Actions repository secret `SUPABASE_PUBLISHABLE_KEY` if CI-built APKs should include cloud configuration.
+- [ ] Confirm the Android CI run succeeds.
+- [ ] Install and test the APK on a physical Android device.
 
 ## Supabase project
 - [x] Create dedicated FocusForge project in Mumbai (`ap-south-1`).
@@ -27,7 +27,6 @@
 - [ ] Add the Supabase callback URL shown in Supabase Auth > Providers > Google to the Web client.
 - [ ] Enable Google in Supabase Auth > Providers and enter the Web client ID and client secret.
 - [ ] Add `focusforge://login` to Supabase Auth URL Configuration > Redirect URLs.
-- [ ] Set the local values documented in `docs/GOOGLE_AUTH_SETUP.md`.
 
 ## Offline-first acceptance criteria
 - [x] A missing cloud configuration does not prevent the app from opening.
