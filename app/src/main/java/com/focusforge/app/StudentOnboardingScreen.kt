@@ -60,8 +60,8 @@ private val onboardingMuted = Color(0xFF929AAA)
 @Composable
 fun StudentOnboardingScreen(
     userId: String,
-    onCompleted: () -> Unit,
-    editMode: Boolean = false
+    editMode: Boolean = false,
+    onCompleted: () -> Unit
 ) {
     val client = FocusForgeSupabase.clientOrNull()
     val scope = rememberCoroutineScope()
