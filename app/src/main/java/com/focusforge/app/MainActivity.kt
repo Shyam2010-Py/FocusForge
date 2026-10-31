@@ -121,22 +121,45 @@ class MainActivity : ComponentActivity() {
     }
    }
   }) { padding ->
-   when(tab) { 0->FocusScreen(Modifier.padding(padding)); 1->AppRulesScreen(Modifier.padding(padding)); 2->HistoryScreen(Modifier.padding(padding)); 3->GroupsScreen(userId=userId, modifier=Modifier.padding(padding)); else->StudentOnboardingScreen(userId=userId, editMode=true, onCompleted={ tab=0 }) }
+   when(tab) { 0->FocusScreen(userId, Modifier.padding(padding)); 1->AppRulesScreen(Modifier.padding(padding)); 2->HistoryScreen(Modifier.padding(padding)); 3->GroupsScreen(userId=userId, modifier=Modifier.padding(padding)); else->StudentOnboardingScreen(userId=userId, editMode=true, onCompleted={ tab=0 }) }
   }
  }
 }
 
-@Composable private fun FocusScreen(modifier: Modifier=Modifier) {
+@Composable private fun FocusScreen(userId: String, modifier: Modifier=Modifier) {
  val context= LocalContext.current; val prefs=remember { FocusForgeSettings.prefs(context) }
  var selected by remember { mutableIntStateOf(25) }
  var remaining by remember { mutableLongStateOf(prefs.getLong("remaining_ms",1500000L)) }
  var running by remember { mutableStateOf(prefs.getBoolean("running",false)) }
  var hasSession by remember { mutableStateOf(prefs.contains("started_at")) }
+ var startedAt by remember { mutableLongStateOf(prefs.getLong("started_at", 0L)) }
+ var endAt by remember { mutableLongStateOf(prefs.getLong("end_at", 0L)) }
+ var plannedSeconds by remember { mutableIntStateOf(prefs.getInt("duration_seconds", 0)) }
  LaunchedEffect(Unit) { while(true) {
   running=prefs.getBoolean("running",false); hasSession=prefs.contains("started_at")
+  startedAt=prefs.getLong("started_at",0L); endAt=prefs.getLong("end_at",0L); plannedSeconds=prefs.getInt("duration_seconds",0)
   remaining=if(running) (prefs.getLong("end_at",0L)-System.currentTimeMillis()).coerceAtLeast(0L) else prefs.getLong("remaining_ms",remaining)
   delay(500)
  } }
+ LaunchedEffect(userId, running, hasSession, remaining == 0L, startedAt, endAt, plannedSeconds) {
+  val status = when {
+   running -> "focusing"
+   hasSession && remaining == 0L -> "completed"
+   hasSession -> "paused"
+   else -> "not_focusing"
+  }
+  withContext(Dispatchers.IO) {
+   try {
+    publishIndividualFocusStatus(
+     userId = userId,
+     status = status,
+     startedAtMillis = startedAt.takeIf { it > 0L },
+     endsAtMillis = endAt.takeIf { running && it > 0L },
+     plannedSeconds = plannedSeconds.takeIf { it > 0 }
+    )
+   } catch (_: Exception) { }
+  }
+ }
  Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp),verticalArrangement=Arrangement.spacedBy(18.dp)) {
   Text("FOCUSFORGE",color=accent,fontSize=12.sp,fontWeight=FontWeight.Bold,letterSpacing=2.sp)
   Text("Make time count.",color=Color.White,fontSize=27.sp,fontWeight=FontWeight.Bold)
