@@ -38,9 +38,10 @@ The publishable key is intended for client applications. Never put a Supabase se
 
 ## 4. Expected app behavior
 
-- Without local Supabase configuration, FocusForge still opens and the focus timer and Room history remain available.
-- With configuration present, the Account card offers **Continue with Google**.
-- Successful browser sign-in returns through `focusforge://login`.
+- Without local Supabase configuration, the app shows a setup-required screen and does not expose Focus, App Rules, or History.
+- With configuration present but no active session, the app shows a dedicated **Continue with Google** login screen. All app features remain locked.
+- Successful browser sign-in returns through `focusforge://login`; the app observes `auth.sessionStatus` and opens the main app only after Supabase reports an authenticated session.
+- Signing out returns the user to the login screen and locks the app features again.
 - The Supabase Kotlin Auth SDK stores and restores the session.
 - Signing out clears the cloud session but does not delete local Room focus history.
 
