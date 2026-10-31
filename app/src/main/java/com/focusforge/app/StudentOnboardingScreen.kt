@@ -103,8 +103,8 @@ fun StudentOnboardingScreen(
                     OutlinedTextField(fullName, { fullName = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Full name") }, singleLine = true)
                     OutlinedTextField(institution, { institution = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("College / Institution name") }, singleLine = true)
                     OutlinedTextField(educationLevel, { educationLevel = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Education level (e.g. Diploma)") }, singleLine = true)
-                    OutlinedTextField(course, { course = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Course (e.g. ECE)") }, singleLine = true)
-                    OutlinedTextField(branch, { branch = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Branch / Department") }, singleLine = true)
+                    OutlinedTextField(course, { course = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Programme / Qualification (e.g. Diploma in Engineering)") }, singleLine = true)
+                    OutlinedTextField(branch, { branch = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Branch / Specialization (e.g. Electronics & Communication Engineering)") }, singleLine = true)
                     OutlinedTextField(academicYear, { academicYear = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Current year (e.g. 2nd Year)") }, singleLine = true)
                     OutlinedTextField(semester, { semester = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Current semester (e.g. 3rd Semester)") }, singleLine = true)
                     error?.let { Text(it, color = Color(0xFFFFB4AB), fontSize = 12.sp) }
