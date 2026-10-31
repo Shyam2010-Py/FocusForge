@@ -164,15 +164,15 @@ fun LoginRequiredScreen(isConfigured: Boolean) {
                                         try {
                                             if (isCreatingAccount) {
                                                 client.auth.signUpWith(Email) {
-                                                    email = cleanEmail
-                                                    password = password
+                                                    this.email = cleanEmail
+                                                    this.password = password
                                                 }
                                                 message = "Account created. Check your email for a confirmation link if email confirmation is enabled."
                                                 isError = false
                                             } else {
                                                 client.auth.signInWith(Email) {
-                                                    email = cleanEmail
-                                                    password = password
+                                                    this.email = cleanEmail
+                                                    this.password = password
                                                 }
                                                 message = "Signed in successfully."
                                                 isError = false
