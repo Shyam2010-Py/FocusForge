@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -104,22 +105,22 @@ class MainActivity : ComponentActivity() {
   }
   completed == null -> AuthLoadingScreen()
   completed == false -> StudentOnboardingScreen(userId=userId) { completed = true }
-  else -> FocusForgeMainApp()
+  else -> FocusForgeMainApp(userId)
  }
 }
 
-@Composable private fun FocusForgeMainApp() {
+@Composable private fun FocusForgeMainApp(userId: String) {
  var tab by remember { mutableIntStateOf(0) }
  MaterialTheme(colorScheme=darkColorScheme(primary=accent, background=bg, surface=panel, onBackground=Color.White, onSurface=Color.White)) {
   Scaffold(containerColor=bg, bottomBar={
    NavigationBar(containerColor=panel) {
-    listOf("Focus","App rules","History").forEachIndexed { i,label ->
-     val icon=listOf(Icons.Rounded.Home,Icons.Rounded.Block,Icons.Rounded.Analytics)[i]
+    listOf("Focus","App rules","History","Profile").forEachIndexed { i,label ->
+     val icon=listOf(Icons.Rounded.Home,Icons.Rounded.Block,Icons.Rounded.Analytics,Icons.Rounded.Person)[i]
      NavigationBarItem(selected=tab==i,onClick={tab=i},icon={Icon(icon,contentDescription=label)},label={Text(label)})
     }
    }
   }) { padding ->
-   when(tab) { 0->FocusScreen(Modifier.padding(padding)); 1->AppRulesScreen(Modifier.padding(padding)); else->HistoryScreen(Modifier.padding(padding)) }
+   when(tab) { 0->FocusScreen(Modifier.padding(padding)); 1->AppRulesScreen(Modifier.padding(padding)); 2->HistoryScreen(Modifier.padding(padding)); else->StudentOnboardingScreen(userId=userId, editMode=true, onCompleted={ tab=0 }) }
   }
  }
 }
