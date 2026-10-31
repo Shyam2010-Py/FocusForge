@@ -258,7 +258,7 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
                                 ).decodeList<GroupRpcResult>()
                                 joinCode = ""
                                 message = "You joined the group."
-                                refresh = !refresh
+                                refresh = refresh + 1
                             } catch (e: Exception) {
                                 error = e.message ?: "Could not join the group."
                             } finally {
@@ -277,7 +277,7 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Your groups", color = Color.White, fontWeight = FontWeight.Bold)
-            OutlinedButton(onClick = { refresh = !refresh }, enabled = !loading && !busy) { Text("Refresh") }
+            OutlinedButton(onClick = { refresh = refresh + 1 }, enabled = !loading && !busy) { Text("Refresh") }
         }
 
         when {
