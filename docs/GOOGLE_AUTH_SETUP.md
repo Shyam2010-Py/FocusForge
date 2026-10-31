@@ -1,31 +1,17 @@
-# FocusForge Google authentication setup
+# FocusForge email and password authentication
 
-The Android app uses Supabase's browser-based Google OAuth flow with an app deep link callback. This keeps Google credentials out of the Android source code.
+FocusForge uses Supabase Auth with email and password. Google Cloud OAuth is not required.
 
-## 1. Configure Google Cloud
-
-1. Create or select a Google Cloud project dedicated to FocusForge.
-2. Configure Google Auth Platform branding and audience.
-3. Request only the basic identity information required for sign-in: `openid`, `email`, and `profile`.
-4. Create an OAuth client of type **Web application**.
-5. In the Web client, add the Supabase callback URL shown in the FocusForge Supabase dashboard under **Authentication → Providers → Google**. It will have this form:
-   `https://hyfnjltsnhvclrnlajfr.supabase.co/auth/v1/callback`
-6. Save the Web client ID and client secret securely.
-
-FocusForge does not need Gmail, Drive, Contacts, or other Google API scopes.
-
-## 2. Enable Google in Supabase
+## 1. Supabase configuration
 
 1. Open [FocusForge Supabase](https://supabase.com/dashboard/project/hyfnjltsnhvclrnlajfr).
-2. Go to **Authentication → Providers → Google**.
-3. Enable Google and enter the Web OAuth client ID and client secret.
-4. Save the provider settings.
-5. Go to **Authentication → URL Configuration → Redirect URLs** and add:
-   `focusforge://login`
+2. Go to **Authentication → Sign In / Providers → Email**.
+3. Ensure email/password authentication is enabled.
+4. Keep email confirmation enabled for account verification. After registration, users may need to confirm their email before they can sign in. For production email delivery, configure a trusted SMTP provider and review the email templates and redirect URLs.
 
-The redirect URL must match the Android manifest and the Supabase Kotlin Auth configuration exactly.
+Supabase's hosted email provider has sending limits, so it is intended for initial testing rather than high-volume production use.
 
-## 3. Configure the Android build
+## 2. Android build configuration
 
 Add these values to the project's local `local.properties` file. Do not commit this file.
 
@@ -36,23 +22,29 @@ SUPABASE_PUBLISHABLE_KEY=<your FocusForge sb_publishable key>
 
 The publishable key is intended for client applications. Never put a Supabase secret/service-role key in the Android app or source control.
 
-## 4. Expected app behavior
+## 3. Authentication behavior
 
-- Without local Supabase configuration, the app shows a setup-required screen and does not expose Focus, App Rules, or History.
-- With configuration present but no active session, the app shows a dedicated **Continue with Google** login screen. All app features remain locked.
-- Successful browser sign-in returns through `focusforge://login`; the app observes `auth.sessionStatus` and opens the main app only after Supabase reports an authenticated session.
-- Signing out returns the user to the login screen and locks the app features again.
+- A new user chooses **Create an account**, enters an email and password, then enters the password again to confirm it.
+- The app checks that the email is valid, the password has at least 8 characters, and both password entries match.
+- Supabase creates the account. If email confirmation is enabled, the user must confirm the email before signing in.
+- Returning users choose **Sign in** and enter their email and password.
+- Focus, App Rules, History, and other protected features remain locked until Supabase reports an authenticated session.
+- Signing out returns the user to the login screen.
 - The Supabase Kotlin Auth SDK stores and restores the session.
-- Signing out clears the cloud session but does not delete local Room focus history.
+
+## 4. Student profile onboarding (next step)
+
+After a user's first successful authentication, the next onboarding screen will collect student profile details such as full name, college name, diploma/degree, branch, and year/semester. These details belong in the user's own profile records and must be protected by Row Level Security. Do not request these details before account creation.
 
 ## 5. Verification
 
 1. Build with JDK 17 and Android SDK 36.
-2. Test Google sign-in on a physical Android device with Google Play services available.
-3. Confirm the account email appears in the Account card after returning to the app.
-4. Force-stop and reopen the app; confirm the session is restored.
-5. Sign out and confirm local focus history remains.
-6. Test focus timer operation with network disabled.
-7. Run Supabase security advisors and verify owner-only RLS with two separate test accounts.
+2. Create a test account using an email address you can access.
+3. Confirm the email if Supabase email confirmation is enabled.
+4. Sign in with the same email and password.
+5. Confirm the main app opens only after authentication.
+6. Force-stop and reopen the app; confirm the session is restored.
+7. Sign out and confirm the login screen appears again.
+8. Verify that two different test accounts cannot read or modify each other's profile data.
 
-Do not treat a successful Gradle build as proof that the external OAuth provider is configured correctly. Google sign-in requires the Google Cloud and Supabase dashboard steps above.
+A successful Gradle build does not prove that email delivery or confirmation is configured correctly; test the full signup and sign-in flow on a physical Android device.
