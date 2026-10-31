@@ -34,7 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Email
+import io.github.jan.supabase.auth.providers.builtin.Email
 import kotlinx.coroutines.launch
 
 private val loginAccent = Color(0xFF9B8CFF)
