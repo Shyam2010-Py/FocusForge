@@ -54,6 +54,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable fun FocusForgeApp() {
+ val client = FocusForgeSupabase.clientOrNull()
+ if (client == null) {
+  LoginRequiredScreen(isConfigured = false)
+  return
+ }
+ val sessionStatus by client.auth.sessionStatus.collectAsState()
+ when (sessionStatus) {
+  is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> FocusForgeMainApp()
+  io.github.jan.supabase.auth.status.SessionStatus.Initializing -> AuthLoadingScreen()
+  is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated,
+  is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> LoginRequiredScreen(isConfigured = true)
+ }
+}
+
+@Composable private fun FocusForgeMainApp() {
  var tab by remember { mutableIntStateOf(0) }
  MaterialTheme(colorScheme=darkColorScheme(primary=accent, background=bg, surface=panel, onBackground=Color.White, onSurface=Color.White)) {
   Scaffold(containerColor=bg, bottomBar={
