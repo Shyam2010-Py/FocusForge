@@ -1,7 +1,7 @@
 name: Android CI
 on:
   push:
-    branches: [ main ]
+    branches: [ main, phase-3/google-auth ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -24,6 +24,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.13
+      - name: Prepare local Supabase build config
+        env:
+          SUPABASE_URL: https://hyfnjltsnhvclrnlajfr.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          {
+            printf 'SUPABASE_URL=%s\n' "$SUPABASE_URL"
+            printf 'SUPABASE_PUBLISHABLE_KEY=%s\n' "$SUPABASE_PUBLISHABLE_KEY"
+          } > local.properties
       - name: Build debug APK
         run: gradle assembleDebug
       - name: Upload APK
