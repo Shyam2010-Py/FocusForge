@@ -1,32 +1,32 @@
 # FocusForge
 
-FocusForge is an independent, free-first Android focus and study companion. It follows the general idea of reducing digital distractions, with original branding, interface and implementation.
+FocusForge is an Android focus and study companion built with Kotlin and Jetpack Compose.
 
-## Current status
+## Phase 2: focus engine and app rules
 
-This repository contains the initial Android starter foundation:
+- Room database for completed focus-session history.
+- Foreground timer with pause, resume, reset, ongoing notification and end-time persistence.
+- Timer service can restore an active countdown if Android recreates the service process.
+- Completion notification and saved session history.
+- Installed-app picker based on launcher-visible apps; no broad QUERY_ALL_PACKAGES permission.
+- Per-app rules: Default, Study, Block, Always allow.
+- Only apps marked Block are restricted, and only during an active focus session.
+- Accessibility permission onboarding. The device owner must enable the service manually in Android Settings.
+- App blocking decisions are processed locally. The service checks the foreground package; it does not inspect page text, capture keystrokes, record screens or upload app activity.
+- YouTube Shorts-specific blocking is intentionally deferred.
 
-- Native Android app using Kotlin and Jetpack Compose
-- Dark-first dashboard and bottom navigation
-- In-app focus countdown with 25/50/90-minute presets, pause and reset
-- Supabase Kotlin SDK dependencies and configuration hooks
-- Initial PostgreSQL schema and Row Level Security policies
-- GitHub Actions workflow for a debug APK build
+## App rule meanings
 
-This is **not yet a complete production application**. Authentication screens, persistent Room repositories, complete multiplayer flows, AccessibilityService-based app blocking, usage analytics, notifications, planner and release signing remain to be implemented and tested.
+- **Default:** FocusForge does not restrict this app.
+- **Study:** Identified as useful for study and remains accessible.
+- **Block:** Covered by the FocusForge blocker during an active focus session.
+- **Always allow:** Explicit exemption from blocking.
 
-## Requirements
-
-- JDK 17
-- Android SDK 36
-- Gradle 8.13-compatible environment
-- Android 8.0 (API 26) or newer for device testing
-
-Android Studio is optional. GitHub Actions can build the debug APK in the cloud.
+All apps remain usable outside active focus sessions. Rules can be changed at any time.
 
 ## Build
 
-The repository currently uses a Gradle-installed CI workflow. From an environment with Gradle 8.13 and Android SDK 36:
+Requirements: JDK 17, Android SDK 36 and Gradle 8.13.
 
 ```bash
 gradle assembleDebug
@@ -34,49 +34,15 @@ gradle assembleDebug
 
 APK output: `app/build/outputs/apk/debug/app-debug.apk`.
 
-## GitHub Actions
+## Permissions and privacy
 
-Push to `main` or run **Actions → Android CI → Run workflow**. The workflow uploads a `FocusForge-debug-apk` artifact when the build succeeds.
+- Notifications are requested at runtime on Android 13+.
+- Accessibility must be enabled manually by the user in Android Settings.
+- Accessibility is used to identify the foreground app and apply the user's blocked-app list.
+- The app queries launcher-visible apps only; it does not request `QUERY_ALL_PACKAGES`.
+- No app usage history is sent to a server.
+- Blocking is active only during a focus session and can be disabled by turning off the service or removing block rules.
 
-## Supabase setup
+## Supabase
 
-1. Create a Supabase project in your own organization.
-2. Run `supabase/migrations/001_initial_schema.sql` in the Supabase SQL Editor.
-3. Obtain the project URL and publishable key from the Supabase dashboard.
-4. For local builds, create an untracked `local.properties` file:
-
-```properties
-SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_REPLACE_ME
-```
-
-Never put a Supabase secret or `service_role` key in the Android application or GitHub repository. A publishable key is not a replacement for Row Level Security.
-
-## Multiplayer design
-
-The schema provides profiles, study rooms, room membership and focus sessions. The intended timer model stores an authoritative start timestamp and duration; each device computes the visible countdown locally. Do not write to the database every second.
-
-The current migration is an initial foundation, not a complete secure room API. Before inviting users, implement and test secure room creation/join/leave and host-only session transitions using validated database functions or Edge Functions. Review all RLS policies with at least two test accounts.
-
-## Security and privacy
-
-- RLS must remain enabled on every exposed table.
-- Never ship service-role credentials in a mobile client.
-- Validate room capacity, room codes, membership and host privileges on the server/database.
-- App-blocking functionality must be transparent, explicitly enabled by the device owner and easy to disable. Android Accessibility APIs are subject to platform and Play policy requirements.
-
-## Roadmap
-
-- [x] Initial Android project and dark dashboard
-- [x] Initial Supabase schema and RLS foundation
-- [x] GitHub Actions APK workflow
-- [ ] Room persistence, timer recovery and notifications
-- [ ] Supabase authentication and profile sync
-- [ ] Secure study-room flows and Realtime synchronization
-- [ ] App blocking and usage access with clear consent
-- [ ] Planner, analytics, streaks and automated tests
-- [ ] Privacy review, release signing and distribution
-
-## License
-
-No open-source license has been selected. All rights are reserved by the project author unless a license is added.
+The existing Supabase schema and optional client configuration remain available. Phase 2 stores session history locally using Room. Cloud sync and multiplayer remain separate milestones. Never put a Supabase service-role key in the Android app.

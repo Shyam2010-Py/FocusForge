@@ -1,0 +1,1 @@
+<resources><string name="accessibility_service_description">FocusForge checks the foreground app and blocks only apps selected by you during an active focus session. It does not inspect screen contents or upload app activity.</string></resources>
