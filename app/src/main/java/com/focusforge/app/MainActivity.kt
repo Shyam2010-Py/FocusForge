@@ -104,7 +104,7 @@ class MainActivity : ComponentActivity() {
    }
   }
   completed == null -> AuthLoadingScreen()
-  completed == false -> StudentOnboardingScreen(userId=userId) { completed = true }
+  completed == false -> StudentOnboardingScreen(userId=userId, onCompleted={ completed = true })
   else -> FocusForgeMainApp(userId)
  }
 }
