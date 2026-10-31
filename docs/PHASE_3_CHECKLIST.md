@@ -16,7 +16,9 @@
 - [x] Create dedicated FocusForge project in Mumbai (`ap-south-1`).
 - [x] Apply `001_initial_schema` (profiles, focus sessions and study rooms).
 - [x] Apply `002_student_profiles` (education profiles, goals, exam preferences and owner-only RLS).
-- [ ] Run Supabase security advisors and verify RLS with two independent test accounts.
+- [x] Run Supabase security advisor (no security lints reported).
+- [ ] Verify owner-only RLS with two independent test accounts.
+- [x] Add an index for focus-session room lookups after the performance advisor identified an unindexed foreign key.
 
 ## Google Cloud and Supabase provider setup
 - [ ] Create a Google Cloud project dedicated to FocusForge.
