@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -214,7 +215,7 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
                                 groupName = ""
                                 description = ""
                                 message = "Group created. Invitation code: ${result.inviteCode ?: "unavailable"}"
-                                refresh = !refresh
+                                refresh = refresh + 1
                             } catch (e: Exception) {
                                 error = e.message ?: "Could not create the group."
                             } finally {
