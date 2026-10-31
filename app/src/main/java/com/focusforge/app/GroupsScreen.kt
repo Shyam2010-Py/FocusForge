@@ -64,6 +64,7 @@ private data class GroupRpcResult(
 @Serializable
 private data class GroupMembership(
     @SerialName("group_id") val groupId: String,
+    @SerialName("user_id") val userId: String,
     @SerialName("role") val role: String,
     @SerialName("display_name") val displayName: String = "Student"
 )
@@ -116,6 +117,8 @@ fun GroupsScreen(userId: String, modifier: Modifier = Modifier) {
     var error by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var refresh by remember { mutableStateOf(0) }
+
+    LaunchedEffect(userId) { while (true) { kotlinx.coroutines.delay(10000); refresh = !refresh } }
 
     LaunchedEffect(userId, refresh) {
         if (client == null) {
