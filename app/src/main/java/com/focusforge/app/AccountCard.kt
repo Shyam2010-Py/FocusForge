@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 
 @Composable
