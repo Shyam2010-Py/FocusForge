@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.handleDeeplinks
+import io.github.jan.supabase.postgrest.Postgrest
 
 object FocusForgeSupabase {
     private val configured: Boolean
@@ -21,6 +22,7 @@ object FocusForgeSupabase {
                 scheme = "focusforge"
                 host = "login"
             }
+            install(Postgrest)
         }
     }
 
