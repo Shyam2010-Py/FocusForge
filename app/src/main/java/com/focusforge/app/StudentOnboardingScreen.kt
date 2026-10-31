@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -44,6 +46,11 @@ data class EducationProfile(
     @SerialName("semester") val semester: String
 )
 
+@Serializable
+data class StudentNameRecord(
+    @SerialName("display_name") val displayName: String
+)
+
 private val onboardingBg = Color(0xFF090B10)
 private val onboardingPanel = Color(0xFF141923)
 private val onboardingAccent = Color(0xFF9B8CFF)
@@ -52,7 +59,8 @@ private val onboardingMuted = Color(0xFF929AAA)
 @Composable
 fun StudentOnboardingScreen(
     userId: String,
-    onCompleted: () -> Unit
+    onCompleted: () -> Unit,
+    editMode: Boolean = false
 ) {
     val client = FocusForgeSupabase.clientOrNull()
     val scope = rememberCoroutineScope()
@@ -64,6 +72,34 @@ fun StudentOnboardingScreen(
     var semester by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var loadingProfile by remember { mutableStateOf(editMode) }
+
+    LaunchedEffect(userId, editMode) {
+        if (editMode && client != null) {
+            try {
+                val profile = withContext(Dispatchers.IO) {
+                    client.from("education_profiles").select {
+                        filter { eq("user_id", userId) }
+                    }.decodeList<EducationProfile>().firstOrNull()
+                }
+                val name = withContext(Dispatchers.IO) {
+                    client.from("profiles").select {
+                        filter { eq("id", userId) }
+                    }.decodeList<StudentNameRecord>().firstOrNull()
+                }
+                fullName = name?.displayName.orEmpty()
+                institution = profile?.institutionName.orEmpty()
+                educationLevel = profile?.educationLevel ?: "Diploma"
+                branch = profile?.stream.orEmpty()
+                academicYear = profile?.academicYear.orEmpty()
+                semester = profile?.semester.orEmpty()
+            } catch (e: Exception) {
+                error = e.message ?: "Could not load your saved profile."
+            } finally {
+                loadingProfile = false
+            }
+        }
+    }
 
     MaterialTheme(
         colorScheme = darkColorScheme(
@@ -86,9 +122,9 @@ fun StudentOnboardingScreen(
         ) {
             Text("FOCUSFORGE", color = onboardingAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
             Spacer(Modifier.height(12.dp))
-            Text("Set up your student profile", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Text(if (editMode) "Edit your student profile" else "Set up your student profile", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
-            Text("Complete these details to personalize your study experience.", color = onboardingMuted, fontSize = 13.sp)
+            Text(if (editMode) "Update your academic information." else "Complete these details to personalize your study experience.", color = onboardingMuted, fontSize = 13.sp)
             Spacer(Modifier.height(20.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -98,6 +134,7 @@ fun StudentOnboardingScreen(
                     modifier = Modifier.padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(11.dp)
                 ) {
+                    if (loadingProfile) CircularProgressIndicator(color = onboardingAccent)
                     OutlinedTextField(fullName, { fullName = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Full name") }, singleLine = true)
                     OutlinedTextField(institution, { institution = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("College / Institution name") }, singleLine = true)
                     OutlinedTextField(educationLevel, { educationLevel = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Education level (e.g. Diploma)") }, singleLine = true)
@@ -146,11 +183,11 @@ fun StudentOnboardingScreen(
                                 }
                             }
                         },
-                        enabled = !busy,
+                        enabled = !busy && !loadingProfile,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         if (busy) CircularProgressIndicator()
-                        else Text("Save profile and continue")
+                        else Text(if (editMode) "Save changes" else "Save profile and continue")
                     }
                 }
             }
