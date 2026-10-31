@@ -39,7 +39,6 @@ data class EducationProfile(
     @SerialName("user_id") val userId: String,
     @SerialName("education_level") val educationLevel: String,
     @SerialName("institution_name") val institutionName: String,
-    @SerialName("course_name") val courseName: String,
     @SerialName("stream") val stream: String,
     @SerialName("academic_year") val academicYear: String,
     @SerialName("semester") val semester: String
@@ -60,7 +59,6 @@ fun StudentOnboardingScreen(
     var fullName by remember { mutableStateOf("") }
     var institution by remember { mutableStateOf("") }
     var educationLevel by remember { mutableStateOf("Diploma") }
-    var course by remember { mutableStateOf("") }
     var branch by remember { mutableStateOf("") }
     var academicYear by remember { mutableStateOf("") }
     var semester by remember { mutableStateOf("") }
@@ -103,7 +101,6 @@ fun StudentOnboardingScreen(
                     OutlinedTextField(fullName, { fullName = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Full name") }, singleLine = true)
                     OutlinedTextField(institution, { institution = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("College / Institution name") }, singleLine = true)
                     OutlinedTextField(educationLevel, { educationLevel = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Education level (e.g. Diploma)") }, singleLine = true)
-                    OutlinedTextField(course, { course = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Programme / Qualification (e.g. Diploma in Engineering)") }, singleLine = true)
                     OutlinedTextField(branch, { branch = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Branch / Specialization (e.g. Electronics & Communication Engineering)") }, singleLine = true)
                     OutlinedTextField(academicYear, { academicYear = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Current year (e.g. 2nd Year)") }, singleLine = true)
                     OutlinedTextField(semester, { semester = it; error = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Current semester (e.g. 3rd Semester)") }, singleLine = true)
@@ -113,13 +110,12 @@ fun StudentOnboardingScreen(
                             val cleanName = fullName.trim()
                             val cleanInstitution = institution.trim()
                             val cleanLevel = educationLevel.trim()
-                            val cleanCourse = course.trim()
                             val cleanBranch = branch.trim()
                             val cleanYear = academicYear.trim()
                             val cleanSemester = semester.trim()
                             when {
                                 cleanName.isBlank() || cleanInstitution.isBlank() || cleanLevel.isBlank() ||
-                                    cleanCourse.isBlank() || cleanBranch.isBlank() || cleanYear.isBlank() || cleanSemester.isBlank() ->
+                                    cleanBranch.isBlank() || cleanYear.isBlank() || cleanSemester.isBlank() ->
                                     error = "Complete every field to continue."
                                 client == null -> error = "Supabase is not configured in this build."
                                 else -> scope.launch {
@@ -131,7 +127,6 @@ fun StudentOnboardingScreen(
                                                 userId = userId,
                                                 educationLevel = cleanLevel,
                                                 institutionName = cleanInstitution,
-                                                courseName = cleanCourse,
                                                 stream = cleanBranch,
                                                 academicYear = cleanYear,
                                                 semester = cleanSemester
