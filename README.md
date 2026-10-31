@@ -46,3 +46,14 @@ APK output: `app/build/outputs/apk/debug/app-debug.apk`.
 ## Supabase
 
 The existing Supabase schema and optional client configuration remain available. Phase 2 stores session history locally using Room. Cloud sync and multiplayer remain separate milestones. Never put a Supabase service-role key in the Android app.
+
+
+## Phase 3: Supabase account foundation
+
+- Dedicated Supabase project in Mumbai (`ap-south-1`).
+- Database migrations for profiles, study rooms, focus sessions, education profiles, study goals and exam preferences.
+- Row Level Security keeps profile and student preference records scoped to their owner.
+- Optional Google sign-in entry point using Supabase Auth and the `focusforge://login` callback.
+- Cloud authentication is optional; the focus timer and Room history remain local and usable offline.
+
+See [Google authentication setup](docs/GOOGLE_AUTH_SETUP.md) and [Phase 3 checklist](docs/PHASE_3_CHECKLIST.md). Google OAuth still requires external Google Cloud and Supabase provider configuration before sign-in can be tested.
