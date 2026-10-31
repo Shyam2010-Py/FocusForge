@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import io.github.jan.supabase.auth.auth
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
