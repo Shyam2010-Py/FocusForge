@@ -63,10 +63,48 @@ class MainActivity : ComponentActivity() {
  }
  val sessionStatus by client.auth.sessionStatus.collectAsState()
  when (sessionStatus) {
-  is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> FocusForgeMainApp()
+  is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
+   val userId = client.auth.currentUserOrNull()?.id
+   if (userId.isNullOrBlank()) AuthLoadingScreen() else StudentProfileGate(userId)
+  }
   io.github.jan.supabase.auth.status.SessionStatus.Initializing -> AuthLoadingScreen()
   is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated,
   is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> LoginRequiredScreen(isConfigured = true)
+ }
+}
+
+@Composable private fun StudentProfileGate(userId: String) {
+ val client = FocusForgeSupabase.clientOrNull()
+ var completed by remember(userId) { mutableStateOf<Boolean?>(null) }
+ var error by remember(userId) { mutableStateOf<String?>(null) }
+ var retry by remember(userId) { mutableIntStateOf(0) }
+
+ LaunchedEffect(userId, retry) {
+  completed = null
+  error = null
+  try {
+   val rows = withContext(Dispatchers.IO) {
+    client!!.from("education_profiles").select {
+     filter { eq("user_id", userId) }
+    }.decodeList<EducationProfile>()
+   }
+   completed = rows.isNotEmpty()
+  } catch (e: Exception) {
+   error = e.message ?: "Could not load your student profile."
+  }
+ }
+
+ when {
+  error != null -> MaterialTheme(colorScheme = darkColorScheme(primary=accent, background=bg, onBackground=Color.White)) {
+   Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement=Arrangement.Center, horizontalAlignment=Alignment.CenterHorizontally) {
+    Text("Could not load your profile", color=Color.White)
+    Text(error ?: "", color=muted)
+    Button(onClick={ retry++ }) { Text("Try again") }
+   }
+  }
+  completed == null -> AuthLoadingScreen()
+  completed == false -> StudentOnboardingScreen(userId=userId) { completed = true }
+  else -> FocusForgeMainApp()
  }
 }
 
