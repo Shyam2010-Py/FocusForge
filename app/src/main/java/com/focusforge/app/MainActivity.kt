@@ -37,7 +37,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
@@ -134,30 +136,46 @@ class MainActivity : ComponentActivity() {
 }
 
 private data class InstalledApp(val pkg:String,val label:String)
+private val APP_RULE_ROWS = listOf(
+ listOf(AppRule.DEFAULT to "Default",AppRule.STUDY to "Study"),
+ listOf(AppRule.BLOCKED to "Block",AppRule.ALWAYS_ALLOWED to "Always allow")
+)
 
 @Composable private fun AppRulesScreen(modifier:Modifier=Modifier) {
- val context=LocalContext.current; var refresh by remember { mutableIntStateOf(0) }
- val apps=remember(refresh) {
-  val intent=Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-  context.packageManager.queryIntentActivities(intent,PackageManager.MATCH_ALL)
-   .map { InstalledApp(it.activityInfo.packageName,it.loadLabel(context.packageManager).toString()) }
-   .filter { it.pkg!=context.packageName }.distinctBy { it.pkg }.sortedBy { it.label.lowercase() }
+ val context=LocalContext.current
+ var refresh by remember { mutableIntStateOf(0) }
+ var apps by remember { mutableStateOf<List<InstalledApp>>(emptyList()) }
+ var loading by remember { mutableStateOf(true) }
+ LaunchedEffect(refresh) {
+  loading=true
+  apps=withContext(Dispatchers.IO) {
+   val packageManager=context.packageManager
+   val intent=Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+   packageManager.queryIntentActivities(intent,PackageManager.MATCH_ALL)
+    .map { InstalledApp(it.activityInfo.packageName,it.loadLabel(packageManager).toString()) }
+    .filter { it.pkg!=context.packageName }
+    .distinctBy { it.pkg }
+    .sortedBy { it.label.lowercase() }
+  }
+  loading=false
  }
  Column(modifier.fillMaxSize().padding(16.dp)) {
   Text("App rules",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Bold)
   Text("Choose which apps help you study, which to block, and which must always remain available.",color=muted,fontSize=12.sp)
   Spacer(Modifier.height(8.dp))
   Text("Study = allowed  •  Block = restricted during focus  •  Always allow = exempt",color=accent,fontSize=11.sp)
-  OutlinedButton(onClick={refresh++},modifier=Modifier.fillMaxWidth()) { Text("Refresh installed apps") }
-  LazyColumn(verticalArrangement=Arrangement.spacedBy(6.dp)) {
-   items(apps,key={it.pkg}) { app ->
+  OutlinedButton(onClick={refresh++},modifier=Modifier.fillMaxWidth(),enabled=!loading) { Text(if(loading) "Loading installed apps…" else "Refresh installed apps") }
+  if(loading && apps.isEmpty()) {
+   Box(Modifier.fillMaxWidth().weight(1f),contentAlignment=Alignment.Center) { CircularProgressIndicator(color=accent) }
+  } else LazyColumn(verticalArrangement=Arrangement.spacedBy(6.dp)) {
+   items(apps,key={it.pkg},contentType={"app_rule"}) { app ->
     var rule by remember(app.pkg) { mutableStateOf(FocusForgeSettings.rule(context,app.pkg)) }
     Card(colors=CardDefaults.cardColors(containerColor=panel)) {
      Column(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=8.dp)) {
       Text(app.label,color=Color.White,fontWeight=FontWeight.SemiBold,fontSize=14.sp)
       Text(app.pkg,color=muted,fontSize=10.sp)
       Column {
-       listOf(AppRule.DEFAULT to "Default",AppRule.STUDY to "Study",AppRule.BLOCKED to "Block",AppRule.ALWAYS_ALLOWED to "Always allow").chunked(2).forEach { row ->
+       APP_RULE_ROWS.forEach { row ->
         Row(Modifier.fillMaxWidth()) {
          row.forEach { (value,label) ->
           Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically) {
